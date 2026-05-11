@@ -56,8 +56,14 @@ const PublicView = () => {
         <NumberGrid numbers={numbers} isAdmin={false} />
       </div>
       
-      <footer style={{ marginTop: '4rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
+      <footer style={{ marginTop: '4rem', textAlign: 'center', color: 'var(--text-secondary)', paddingBottom: '2rem' }}>
         <p>© {new Date().getFullYear()} La Rifa de Hernán. Todos los derechos reservados.</p>
+        <p style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>
+          Hecha con el amor y energía de{' '}
+          <a href="https://www.melodialab.net" target="_blank" rel="noopener noreferrer" style={{ fontWeight: 'bold' }}>
+            MelodIA Lab
+          </a>
+        </p>
       </footer>
     </div>
   );
