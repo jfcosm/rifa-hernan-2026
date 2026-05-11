@@ -30,6 +30,8 @@ export const formatCLP = (value: number) => {
 export type RaffleConfig = {
   totalNumbers: number;
   drawDate: string; // ISO string
+  showCountdown: boolean;
+  drawDateMessage: string;
 };
 
 const STORAGE_KEY_NUMBERS = 'raffle_numbers';
@@ -38,14 +40,24 @@ const STORAGE_KEY_CONFIG = 'raffle_config';
 
 export const getRaffleConfig = (): RaffleConfig => {
   const data = localStorage.getItem(STORAGE_KEY_CONFIG);
-  if (data) return JSON.parse(data);
+  if (data) {
+    const parsed = JSON.parse(data);
+    // Backward compatibility for old configs
+    if (parsed.showCountdown === undefined) {
+      parsed.showCountdown = !!parsed.drawDate;
+      parsed.drawDateMessage = "Cuando se vendan todos los números";
+    }
+    return parsed;
+  }
   
   // Default config
   const date = new Date();
   date.setDate(date.getDate() + 30); // 30 days from now
   return {
     totalNumbers: 150,
-    drawDate: date.toISOString()
+    drawDate: date.toISOString(),
+    showCountdown: true,
+    drawDateMessage: "Cuando se vendan todos los números"
   };
 };
 

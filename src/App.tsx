@@ -46,7 +46,16 @@ const PublicView = () => {
         </div>
       </header>
 
-      <Countdown targetDate={config.drawDate} />
+      {config.showCountdown ? (
+        <Countdown targetDate={config.drawDate} />
+      ) : (
+        <div className="glass-card" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
+          <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>Fecha del Sorteo</h2>
+          <p style={{ fontSize: '1.5rem', color: 'var(--text-secondary)', fontWeight: 'bold', margin: 0 }}>
+            {config.drawDateMessage}
+          </p>
+        </div>
+      )}
       
       <div style={{ marginTop: '4rem' }}>
         <PrizesSection prizes={prizes} />

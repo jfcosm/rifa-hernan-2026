@@ -13,7 +13,12 @@ import { ThemeToggle } from './ThemeToggle';
 export const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
   const [numbers, setNumbers] = useState<RaffleNumber[]>([]);
-  const [config, setConfig] = useState<RaffleConfig>({ totalNumbers: 150, drawDate: '' });
+  const [config, setConfig] = useState<RaffleConfig>({ 
+    totalNumbers: 150, 
+    drawDate: '',
+    showCountdown: true,
+    drawDateMessage: 'Cuando se vendan todos los números'
+  });
   const [prizes, setPrizes] = useState<Prize[]>([]);
   
   // Modal State
@@ -98,15 +103,40 @@ export const AdminPanel: React.FC = () => {
                 onChange={e => setConfig({...config, totalNumbers: parseInt(e.target.value) || 1})}
               />
             </div>
-            <div className="input-group">
-              <label>Fecha del Sorteo</label>
-              <input 
-                type="datetime-local" 
-                className="input" 
-                value={config.drawDate ? new Date(config.drawDate).toISOString().slice(0, 16) : ''}
-                onChange={e => setConfig({...config, drawDate: new Date(e.target.value).toISOString()})}
-              />
+            <div className="input-group" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', margin: 0 }}>
+                <input 
+                  type="checkbox" 
+                  checked={config.showCountdown}
+                  onChange={e => setConfig({...config, showCountdown: e.target.checked})}
+                  style={{ width: '20px', height: '20px' }}
+                />
+                <span style={{ fontWeight: 'bold' }}>Mostrar Cuenta Regresiva</span>
+              </label>
             </div>
+            
+            {config.showCountdown ? (
+              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Fecha del Sorteo</label>
+                <input 
+                  type="datetime-local" 
+                  className="input" 
+                  value={config.drawDate ? new Date(config.drawDate).toISOString().slice(0, 16) : ''}
+                  onChange={e => setConfig({...config, drawDate: new Date(e.target.value).toISOString()})}
+                />
+              </div>
+            ) : (
+              <div className="input-group" style={{ gridColumn: '1 / -1' }}>
+                <label>Mensaje Alternativo para la Fecha (cuando no hay cuenta regresiva)</label>
+                <input 
+                  type="text" 
+                  className="input" 
+                  placeholder="Ej: Cuando se vendan todos los números"
+                  value={config.drawDateMessage}
+                  onChange={e => setConfig({...config, drawDateMessage: e.target.value})}
+                />
+              </div>
+            )}
           </div>
           <button className="btn btn-primary mt-4" onClick={handleConfigSave}>Guardar Configuración</button>
         </div>
