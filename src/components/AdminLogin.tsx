@@ -13,7 +13,7 @@ export const AdminLogin: React.FC = () => {
     if (loginAdmin(username, password)) {
       navigate('/admin');
     } else {
-      setError('Credenciales incorrectas (usa admin/admin123)');
+      setError('Credenciales incorrectas');
     }
   };
 

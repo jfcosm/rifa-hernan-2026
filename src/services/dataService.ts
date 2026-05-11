@@ -150,7 +150,7 @@ export const isAdminLoggedIn = () => {
 
 export const loginAdmin = (username: string, password: string) => {
   // Simple mock login
-  if (username === 'admin' && password === 'admin123') {
+  if (username === 'Lechuzon1981$' && password === 'Lechuzon1981$') {
     localStorage.setItem('admin_logged_in', 'true');
     return true;
   }
