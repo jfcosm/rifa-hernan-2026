@@ -4,9 +4,11 @@ import {
   getNumbers, updateNumber,
   getRaffleConfig, saveRaffleConfig,
   logoutAdmin,
-  getPrizes, savePrizes
+  getPrizes, savePrizes,
+  finishCurrentRaffle, getRaffleHistory,
+  formatCLP
 } from '../services/dataService';
-import type { RaffleNumber, RaffleConfig, Prize } from '../services/dataService';
+import type { RaffleNumber, RaffleConfig, Prize, RaffleHistoryItem } from '../services/dataService';
 import { NumberGrid } from './NumberGrid';
 import { ThemeToggle } from './ThemeToggle';
 
@@ -17,9 +19,12 @@ export const AdminPanel: React.FC = () => {
     totalNumbers: 150, 
     drawDate: '',
     showCountdown: true,
-    drawDateMessage: 'Cuando se vendan todos los números'
+    drawDateMessage: 'Cuando se vendan todos los números',
+    ticketPrice: 2000,
+    status: 'active'
   });
   const [prizes, setPrizes] = useState<Prize[]>([]);
+  const [history, setHistory] = useState<RaffleHistoryItem[]>([]);
   
   // Modal State
   const [editingNumber, setEditingNumber] = useState<RaffleNumber | null>(null);
@@ -29,6 +34,7 @@ export const AdminPanel: React.FC = () => {
     setNumbers(getNumbers());
     setConfig(getRaffleConfig());
     setPrizes(getPrizes());
+    setHistory(getRaffleHistory());
   }, []);
 
   const handleLogout = () => {
@@ -40,6 +46,20 @@ export const AdminPanel: React.FC = () => {
     saveRaffleConfig(config);
     setNumbers(getNumbers()); // refresh numbers in case total changed
     alert('Configuración guardada exitosamente');
+  };
+
+  const handleTogglePause = () => {
+    const newStatus = config.status === 'paused' ? 'active' : 'paused';
+    const newConfig = { ...config, status: newStatus };
+    setConfig(newConfig);
+    saveRaffleConfig(newConfig);
+  };
+
+  const handleFinishRaffle = () => {
+    if (confirm("¿Estás seguro de finalizar la rifa actual? Esto la archivará en el historial y limpiará el panel para configurar una nueva.")) {
+      finishCurrentRaffle();
+      window.location.reload();
+    }
   };
 
   const handlePrizesSave = () => {
@@ -91,6 +111,28 @@ export const AdminPanel: React.FC = () => {
         </div>
         </div>
 
+        <div className="glass-card mb-8" style={{ border: '2px solid var(--accent-orange)' }}>
+          <h2 className="mb-4">Estado de la Rifa Actual</h2>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: config.status === 'paused' ? 'var(--accent-orange)' : 'var(--success)' }}>
+                {config.status === 'paused' ? 'PAUSADA' : 'ACTIVA'}
+              </span>
+              <p className="text-secondary" style={{ margin: '0.5rem 0 0 0' }}>
+                La pausa es sólo visible para el administrador y solo es aplicable si la rifa tiene fecha definida.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              {config.showCountdown && (
+                <button className="btn btn-outline" onClick={handleTogglePause}>
+                  {config.status === 'paused' ? 'Reanudar Rifa' : 'Pausar Rifa'}
+                </button>
+              )}
+              <button className="btn btn-danger" onClick={handleFinishRaffle}>Finalizar Rifa</button>
+            </div>
+          </div>
+        </div>
+
         <div className="glass-card mb-8">
           <h2 className="mb-4">Configuración General</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
@@ -101,6 +143,15 @@ export const AdminPanel: React.FC = () => {
                 className="input" 
                 value={config.totalNumbers}
                 onChange={e => setConfig({...config, totalNumbers: parseInt(e.target.value) || 1})}
+              />
+            </div>
+            <div className="input-group">
+              <label>Valor del Número (CLP)</label>
+              <input 
+                type="number" 
+                className="input" 
+                value={config.ticketPrice}
+                onChange={e => setConfig({...config, ticketPrice: parseInt(e.target.value) || 0})}
               />
             </div>
             <div className="input-group" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '1rem', marginTop: '1.5rem' }}>
@@ -207,6 +258,32 @@ export const AdminPanel: React.FC = () => {
           <h2 className="mb-4">Gestión de Números</h2>
           <p className="mb-4 text-secondary">Haz clic en un número para editar su estado y el comprador.</p>
           <NumberGrid numbers={numbers} onNumberClick={handleNumberClick} isAdmin={true} />
+        </div>
+
+        <div className="glass-card" style={{ marginTop: '2rem' }}>
+          <h2 className="mb-4">Historial de Rifas</h2>
+          {history.length === 0 ? (
+            <p className="text-secondary">No hay rifas finalizadas aún.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {history.map(h => {
+                const soldCount = h.numbers.filter(n => n.status === 'sold').length;
+                const totalCollected = soldCount * (h.config.ticketPrice || 0);
+                return (
+                  <div key={h.id} style={{ border: '1px solid var(--card-border)', padding: '1rem', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <h3 style={{ margin: 0 }}>Sorteo del {new Date(h.config.drawDate || h.config.finishedAt!).toLocaleDateString()}</h3>
+                      <span className="text-secondary">Finalizada: {new Date(h.config.finishedAt!).toLocaleString()}</span>
+                    </div>
+                    <div style={{ marginTop: '0.5rem', display: 'flex', gap: '2rem' }}>
+                      <p style={{ margin: 0 }}><strong>Números Vendidos:</strong> {soldCount} / {h.config.totalNumbers}</p>
+                      <p style={{ margin: 0 }}><strong>Recaudación Estimada:</strong> {formatCLP(totalCollected)}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

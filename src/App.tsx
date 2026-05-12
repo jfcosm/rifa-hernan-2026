@@ -8,7 +8,7 @@ import { AdminLogin } from './components/AdminLogin';
 import { ThemeToggle } from './components/ThemeToggle';
 import { 
   getNumbers, getPrizes, getRaffleConfig, 
-  isAdminLoggedIn
+  isAdminLoggedIn, formatCLP
 } from './services/dataService';
 import type { RaffleNumber, Prize, RaffleConfig } from './services/dataService';
 
@@ -45,6 +45,20 @@ const PublicView = () => {
           <button className="btn btn-outline" onClick={() => navigate('/login')}>Admin</button>
         </div>
       </header>
+
+      <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+        <div style={{ 
+          display: 'inline-block', 
+          background: 'var(--card-bg)', 
+          border: '2px solid var(--accent-orange)', 
+          borderRadius: '50px', 
+          padding: '0.5rem 2rem',
+          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+        }}>
+          <span style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginRight: '1rem' }}>Valor del Número:</span>
+          <span style={{ fontSize: '1.8rem', fontWeight: 'bold', color: 'var(--accent-orange)' }}>{formatCLP(config.ticketPrice || 2000)}</span>
+        </div>
+      </div>
 
       {config.showCountdown ? (
         <Countdown targetDate={config.drawDate} />

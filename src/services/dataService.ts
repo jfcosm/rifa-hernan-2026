@@ -32,11 +32,15 @@ export type RaffleConfig = {
   drawDate: string; // ISO string
   showCountdown: boolean;
   drawDateMessage: string;
+  ticketPrice: number;
+  status: 'active' | 'paused' | 'finished';
+  finishedAt?: string;
 };
 
 const STORAGE_KEY_NUMBERS = 'raffle_numbers';
 const STORAGE_KEY_PRIZES = 'raffle_prizes';
 const STORAGE_KEY_CONFIG = 'raffle_config';
+const STORAGE_KEY_HISTORY = 'raffle_history';
 
 export const getRaffleConfig = (): RaffleConfig => {
   const data = localStorage.getItem(STORAGE_KEY_CONFIG);
@@ -46,6 +50,12 @@ export const getRaffleConfig = (): RaffleConfig => {
     if (parsed.showCountdown === undefined) {
       parsed.showCountdown = !!parsed.drawDate;
       parsed.drawDateMessage = "Cuando se vendan todos los números";
+    }
+    if (parsed.ticketPrice === undefined) {
+      parsed.ticketPrice = 2000;
+    }
+    if (parsed.status === undefined) {
+      parsed.status = 'active';
     }
     return parsed;
   }
@@ -57,7 +67,9 @@ export const getRaffleConfig = (): RaffleConfig => {
     totalNumbers: 150,
     drawDate: date.toISOString(),
     showCountdown: true,
-    drawDateMessage: "Cuando se vendan todos los números"
+    drawDateMessage: "Cuando se vendan todos los números",
+    ticketPrice: 2000,
+    status: 'active'
   };
 };
 
@@ -153,6 +165,44 @@ export const getPrizes = (): Prize[] => {
 
 export const savePrizes = (prizes: Prize[]) => {
   localStorage.setItem(STORAGE_KEY_PRIZES, JSON.stringify(prizes));
+};
+
+export type RaffleHistoryItem = {
+  id: string;
+  config: RaffleConfig;
+  numbers: RaffleNumber[];
+  prizes: Prize[];
+};
+
+export const getRaffleHistory = (): RaffleHistoryItem[] => {
+  const data = localStorage.getItem(STORAGE_KEY_HISTORY);
+  if (data) return JSON.parse(data);
+  return [];
+};
+
+export const finishCurrentRaffle = () => {
+  const config = getRaffleConfig();
+  const numbers = getNumbers();
+  const prizes = getPrizes();
+
+  config.status = 'finished';
+  config.finishedAt = new Date().toISOString();
+
+  const historyItem: RaffleHistoryItem = {
+    id: Date.now().toString(),
+    config,
+    numbers,
+    prizes
+  };
+
+  const history = getRaffleHistory();
+  history.push(historyItem);
+  localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
+
+  // Reset current raffle keys
+  localStorage.removeItem(STORAGE_KEY_CONFIG);
+  localStorage.removeItem(STORAGE_KEY_NUMBERS);
+  localStorage.removeItem(STORAGE_KEY_PRIZES);
 };
 
 // Admin Auth Mock
