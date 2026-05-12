@@ -24,11 +24,15 @@ export const AdminPanel: React.FC = () => {
   const [editingNumber, setEditingNumber] = useState<RaffleNumber | null>(null);
   const [editForm, setEditForm] = useState({ name: '', lastName: '', phone: '', status: 'available' });
 
-  useEffect(() => {
+  const loadData = () => {
     setNumbers(getNumbers());
     setConfig(getRaffleConfig());
     setPrizes(getPrizes());
     setHistory(getRaffleHistory());
+  };
+
+  useEffect(() => {
+    loadData();
   }, []);
 
   const handleLogout = () => {
@@ -53,13 +57,13 @@ export const AdminPanel: React.FC = () => {
 
   const handleCreateNewRaffle = () => {
     createNewRaffle();
-    window.location.reload();
+    loadData();
   };
 
   const handleFinishRaffle = () => {
     if (confirm("¿Estás seguro de finalizar la rifa actual? Esto la archivará en el historial y limpiará el panel para configurar una nueva.")) {
       finishCurrentRaffle();
-      window.location.reload();
+      loadData();
     }
   };
 
