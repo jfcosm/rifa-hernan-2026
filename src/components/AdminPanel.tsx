@@ -5,7 +5,8 @@ import {
   logoutAdmin, savePrizes,
   finishCurrentRaffle, getRaffleHistory,
   createNewRaffle, formatCLP,
-  subscribeToNumbers, subscribeToPrizes, subscribeToConfig
+  subscribeToNumbers, subscribeToPrizes, subscribeToConfig,
+  bulkUpdateNumbers
 } from '../services/dataService';
 import type { RaffleNumber, RaffleConfig, Prize, RaffleHistoryItem } from '../services/dataService';
 import { NumberGrid } from './NumberGrid';
@@ -22,6 +23,12 @@ export const AdminPanel: React.FC = () => {
   // Modal State
   const [editingNumber, setEditingNumber] = useState<RaffleNumber | null>(null);
   const [editForm, setEditForm] = useState({ name: '', lastName: '', phone: '', status: 'available' });
+
+  // Bulk mode state
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkSelectedIds, setBulkSelectedIds] = useState<number[]>([]);
+  const [bulkForm, setBulkForm] = useState({ name: '', lastName: '', phone: '', status: 'sold' });
+  const [bulkSaving, setBulkSaving] = useState(false);
 
   const loadData = () => {
     getRaffleHistory().then(setHistory);
@@ -90,6 +97,27 @@ export const AdminPanel: React.FC = () => {
       phone: num.buyer?.phone || '',
       status: num.status
     });
+  };
+
+  const handleBulkToggle = (num: RaffleNumber) => {
+    setBulkSelectedIds(prev =>
+      prev.includes(num.id) ? prev.filter(id => id !== num.id) : [...prev, num.id]
+    );
+  };
+
+  const handleBulkSave = async () => {
+    if (bulkSelectedIds.length === 0) return;
+    setBulkSaving(true);
+    const updatedNumbers: RaffleNumber[] = bulkSelectedIds.map(id => {
+      if (bulkForm.status === 'sold') {
+        return { id, status: 'sold' as const, buyer: { name: bulkForm.name, lastName: bulkForm.lastName, phone: bulkForm.phone } };
+      }
+      return { id, status: 'available' as const };
+    });
+    await bulkUpdateNumbers(updatedNumbers);
+    setBulkSelectedIds([]);
+    setBulkMode(false);
+    setBulkSaving(false);
   };
 
   const saveNumberEdit = async () => {
@@ -301,9 +329,103 @@ export const AdminPanel: React.FC = () => {
         </div>
 
             <div className="glass-card">
-              <h2 className="mb-4">Gestión de Números</h2>
-              <p className="mb-4 text-secondary">Haz clic en un número para editar su estado y el comprador.</p>
-              <NumberGrid numbers={numbers} onNumberClick={handleNumberClick} isAdmin={true} />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <div>
+                  <h2 style={{ margin: 0 }}>Gestión de Números</h2>
+                  <p className="text-secondary" style={{ margin: '0.25rem 0 0', fontSize: '0.9rem' }}>
+                    {bulkMode ? `Modo masivo activo — ${bulkSelectedIds.length} número(s) seleccionado(s)` : 'Haz clic en un número para editar su estado.'}
+                  </p>
+                </div>
+                <button
+                  className="btn"
+                  style={{
+                    background: bulkMode ? '#6366f1' : 'var(--card-border)',
+                    color: bulkMode ? 'white' : 'var(--text-primary)',
+                    border: 'none',
+                    padding: '0.6rem 1.25rem',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s'
+                  }}
+                  onClick={() => { setBulkMode(m => !m); setBulkSelectedIds([]); }}
+                >
+                  {bulkMode ? '✕ Cancelar asignación masiva' : '☑ Asignación masiva'}
+                </button>
+              </div>
+
+              <NumberGrid
+                numbers={numbers}
+                onNumberClick={handleNumberClick}
+                isAdmin={true}
+                bulkMode={bulkMode}
+                bulkSelectedIds={bulkSelectedIds}
+                onBulkToggle={handleBulkToggle}
+              />
+
+              {/* Bulk action floating panel */}
+              {bulkMode && bulkSelectedIds.length > 0 && (
+                <div style={{
+                  position: 'fixed',
+                  bottom: '2rem',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: 'var(--card-bg)',
+                  border: '2px solid #6366f1',
+                  borderRadius: '20px',
+                  padding: '1.5rem 2rem',
+                  boxShadow: '0 8px 40px rgba(99,102,241,0.4)',
+                  zIndex: 1000,
+                  minWidth: '360px',
+                  maxWidth: '90vw'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                    <h3 style={{ margin: 0, color: '#818cf8' }}>Asignar {bulkSelectedIds.length} número(s)</h3>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      {[...bulkSelectedIds].sort((a,b)=>a-b).map(id => (
+                        <span key={id} style={{ background: '#6366f1', color: 'white', borderRadius: '6px', padding: '0.2rem 0.5rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
+                          {id.toString().padStart(3,'0')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Estado</label>
+                      <select className="input" value={bulkForm.status} onChange={e => setBulkForm({...bulkForm, status: e.target.value})} style={{ marginTop: '0.25rem' }}>
+                        <option value="sold">Vendido</option>
+                        <option value="available">Disponible</option>
+                      </select>
+                    </div>
+                    {bulkForm.status === 'sold' && (
+                      <>
+                        <div>
+                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nombre</label>
+                          <input type="text" className="input" placeholder="Nombre" value={bulkForm.name} onChange={e => setBulkForm({...bulkForm, name: e.target.value})} style={{ marginTop: '0.25rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Apellido</label>
+                          <input type="text" className="input" placeholder="Apellido" value={bulkForm.lastName} onChange={e => setBulkForm({...bulkForm, lastName: e.target.value})} style={{ marginTop: '0.25rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Celular</label>
+                          <input type="text" className="input" placeholder="Celular" value={bulkForm.phone} onChange={e => setBulkForm({...bulkForm, phone: e.target.value})} style={{ marginTop: '0.25rem' }} />
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  <button
+                    className="btn btn-primary"
+                    style={{ width: '100%', background: '#6366f1', border: 'none', opacity: bulkSaving ? 0.7 : 1 }}
+                    onClick={handleBulkSave}
+                    disabled={bulkSaving}
+                  >
+                    {bulkSaving ? 'Guardando...' : `Guardar asignación de ${bulkSelectedIds.length} número(s)`}
+                  </button>
+                </div>
+              )}
             </div>
           </>
         )}

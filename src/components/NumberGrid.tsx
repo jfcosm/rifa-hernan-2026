@@ -6,9 +6,21 @@ interface NumberGridProps {
   onNumberClick?: (number: RaffleNumber) => void;
   isAdmin?: boolean;
   selectedIds?: number[];
+  // Bulk mode (admin only)
+  bulkMode?: boolean;
+  bulkSelectedIds?: number[];
+  onBulkToggle?: (number: RaffleNumber) => void;
 }
 
-export const NumberGrid: React.FC<NumberGridProps> = ({ numbers, onNumberClick, isAdmin, selectedIds = [] }) => {
+export const NumberGrid: React.FC<NumberGridProps> = ({
+  numbers,
+  onNumberClick,
+  isAdmin,
+  selectedIds = [],
+  bulkMode = false,
+  bulkSelectedIds = [],
+  onBulkToggle,
+}) => {
   return (
     <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
       <h2 className="text-center mb-8 text-gradient">Números de la Rifa</h2>
@@ -19,6 +31,7 @@ export const NumberGrid: React.FC<NumberGridProps> = ({ numbers, onNumberClick, 
       }}>
         {numbers.map((num) => {
           const isSelected = selectedIds.includes(num.id);
+          const isBulkSelected = bulkSelectedIds.includes(num.id);
           const isClickable = isAdmin || num.status === 'available';
 
           let bg = num.status === 'available' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)';
@@ -33,10 +46,24 @@ export const NumberGrid: React.FC<NumberGridProps> = ({ numbers, onNumberClick, 
             boxShadow = '0 0 16px rgba(250, 150, 30, 0.5)';
           }
 
+          if (isBulkSelected) {
+            bg = 'rgba(99, 102, 241, 0.25)';
+            border = '2px solid #6366f1';
+            boxShadow = '0 0 16px rgba(99, 102, 241, 0.5)';
+          }
+
+          const handleClick = () => {
+            if (bulkMode && onBulkToggle) {
+              onBulkToggle(num);
+            } else if (isClickable && onNumberClick) {
+              onNumberClick(num);
+            }
+          };
+
           return (
             <div
               key={num.id}
-              onClick={() => isClickable && onNumberClick && onNumberClick(num)}
+              onClick={handleClick}
               style={{
                 background: bg,
                 border,
@@ -46,21 +73,47 @@ export const NumberGrid: React.FC<NumberGridProps> = ({ numbers, onNumberClick, 
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: isClickable ? 'pointer' : 'default',
+                cursor: (isClickable || bulkMode) ? 'pointer' : 'default',
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 minHeight: '100px',
                 boxShadow,
-                transform: isSelected ? 'scale(1.05)' : 'scale(1)',
+                transform: (isSelected || isBulkSelected) ? 'scale(1.05)' : 'scale(1)',
+                position: 'relative',
               }}
               onMouseOver={(e) => {
-                if (isClickable) e.currentTarget.style.transform = 'scale(1.05)';
+                if (isClickable || bulkMode) e.currentTarget.style.transform = 'scale(1.05)';
               }}
               onMouseOut={(e) => {
-                if (isClickable && !isSelected) e.currentTarget.style.transform = 'scale(1)';
-                if (isSelected) e.currentTarget.style.transform = 'scale(1.05)';
+                if (!isSelected && !isBulkSelected) e.currentTarget.style.transform = 'scale(1)';
               }}
             >
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: isSelected ? 'var(--accent-orange)' : 'var(--number-text)' }}>
+              {/* Bulk mode checkbox */}
+              {bulkMode && (
+                <div style={{
+                  position: 'absolute',
+                  top: '6px',
+                  right: '6px',
+                  width: '18px',
+                  height: '18px',
+                  borderRadius: '4px',
+                  border: isBulkSelected ? '2px solid #6366f1' : '2px solid rgba(255,255,255,0.4)',
+                  background: isBulkSelected ? '#6366f1' : 'rgba(0,0,0,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '11px',
+                  color: 'white',
+                  flexShrink: 0,
+                }}>
+                  {isBulkSelected && '✓'}
+                </div>
+              )}
+
+              <div style={{
+                fontSize: '2rem',
+                fontWeight: 'bold',
+                color: isBulkSelected ? '#818cf8' : isSelected ? 'var(--accent-orange)' : 'var(--number-text)'
+              }}>
                 {num.id.toString().padStart(3, '0')}
               </div>
 
@@ -68,7 +121,11 @@ export const NumberGrid: React.FC<NumberGridProps> = ({ numbers, onNumberClick, 
                 marginTop: '0.5rem',
                 fontSize: '0.85rem',
                 textAlign: 'center',
-                color: isSelected ? 'var(--accent-orange)' : num.status === 'available' ? 'var(--available)' : 'var(--text-primary)'
+                color: isBulkSelected
+                  ? '#818cf8'
+                  : isSelected
+                    ? 'var(--accent-orange)'
+                    : num.status === 'available' ? 'var(--available)' : 'var(--text-primary)'
               }}>
                 {num.status === 'available' ? (
                   isSelected ? '✓ Seleccionado' : 'Disponible'

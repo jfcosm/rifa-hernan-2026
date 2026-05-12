@@ -135,6 +135,13 @@ export const updateNumber = async (updatedNumber: RaffleNumber) => {
   await saveNumbers(newNumbers);
 };
 
+export const bulkUpdateNumbers = async (updatedNumbers: RaffleNumber[]) => {
+  const numbers = await getNumbers();
+  const updateMap = new Map(updatedNumbers.map(n => [n.id, n]));
+  const newNumbers = numbers.map(n => updateMap.has(n.id) ? updateMap.get(n.id)! : n);
+  await saveNumbers(newNumbers);
+};
+
 export const getPrizes = async (): Promise<Prize[]> => {
   const docSnap = await getDoc(doc(db, 'prizes', DOC_PRIZES));
   if (docSnap.exists()) {
