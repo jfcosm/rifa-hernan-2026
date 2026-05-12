@@ -78,6 +78,7 @@ export const createNewRaffle = async () => {
     status: 'active'
   };
   await saveRaffleConfig(newConfig);
+  await getPrizes(); // Ensure prizes are initialized
 };
 
 export const saveRaffleConfig = async (config: RaffleConfig) => {
