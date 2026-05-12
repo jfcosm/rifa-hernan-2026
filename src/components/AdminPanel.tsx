@@ -95,15 +95,21 @@ export const AdminPanel: React.FC = () => {
   const saveNumberEdit = async () => {
     if (!editingNumber) return;
 
-    const updated: RaffleNumber = {
-      ...editingNumber,
-      status: editForm.status as 'available' | 'sold',
-      buyer: editForm.status === 'sold' ? {
-        name: editForm.name,
-        lastName: editForm.lastName,
-        phone: editForm.phone
-      } : undefined
-    };
+    const updated: RaffleNumber = editForm.status === 'sold'
+      ? {
+          id: editingNumber.id,
+          status: 'sold',
+          buyer: {
+            name: editForm.name,
+            lastName: editForm.lastName,
+            phone: editForm.phone
+          }
+        }
+      : {
+          id: editingNumber.id,
+          status: 'available'
+          // buyer field intentionally omitted — Firestore does not accept undefined values
+        };
 
     await updateNumber(updated);
     setEditingNumber(null);
