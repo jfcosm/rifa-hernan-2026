@@ -128,6 +128,24 @@ export const AdminPanel: React.FC = () => {
               </p>
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
+              <button 
+                className="btn" 
+                style={{ 
+                  backgroundColor: config ? 'var(--card-border)' : 'var(--accent-blue)', 
+                  color: config ? 'var(--text-secondary)' : 'white', 
+                  padding: '0.75rem 1.5rem', 
+                  borderRadius: '8px', 
+                  border: 'none', 
+                  cursor: config ? 'not-allowed' : 'pointer', 
+                  fontWeight: 'bold',
+                  opacity: config ? 0.6 : 1
+                }} 
+                onClick={handleCreateNewRaffle}
+                disabled={!!config}
+              >
+                + Crear Nueva Rifa
+              </button>
+
               {config && config.showCountdown && (
                 <button className="btn btn-outline" onClick={handleTogglePause}>
                   {config.status === 'paused' ? 'Reanudar Rifa' : 'Pausar Rifa'}
@@ -135,9 +153,6 @@ export const AdminPanel: React.FC = () => {
               )}
               {config && (
                 <button className="btn btn-danger" onClick={handleFinishRaffle}>Finalizar Rifa</button>
-              )}
-              {!config && (
-                <button className="btn className-primary" style={{ backgroundColor: 'var(--accent-blue)', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }} onClick={handleCreateNewRaffle}>+ Crear Nueva Rifa</button>
               )}
             </div>
           </div>
