@@ -37,33 +37,36 @@ export type RaffleConfig = {
   finishedAt?: string;
 };
 
-const STORAGE_KEY_NUMBERS = 'raffle_numbers';
-const STORAGE_KEY_PRIZES = 'raffle_prizes';
-const STORAGE_KEY_CONFIG = 'raffle_config';
-const STORAGE_KEY_HISTORY = 'raffle_history';
+import { doc, getDoc, setDoc, onSnapshot, collection, getDocs, deleteDoc } from 'firebase/firestore';
+import { db } from './firebaseConfig';
 
-export const getRaffleConfig = (): RaffleConfig | null => {
-  const data = localStorage.getItem(STORAGE_KEY_CONFIG);
-  if (data) {
-    const parsed = JSON.parse(data);
-    // Backward compatibility for old configs
-    if (parsed.showCountdown === undefined) {
-      parsed.showCountdown = !!parsed.drawDate;
-      parsed.drawDateMessage = "Cuando se vendan todos los números";
+const DOC_CONFIG = 'current';
+const DOC_NUMBERS = 'current';
+const DOC_PRIZES = 'current';
+
+export const getRaffleConfig = async (): Promise<RaffleConfig | null> => {
+  try {
+    const docSnap = await getDoc(doc(db, 'config', DOC_CONFIG));
+    if (docSnap.exists()) {
+      return docSnap.data() as RaffleConfig;
     }
-    if (parsed.ticketPrice === undefined) {
-      parsed.ticketPrice = 2000;
-    }
-    if (parsed.status === undefined) {
-      parsed.status = 'active';
-    }
-    return parsed;
+  } catch (e) {
+    console.error("Error getting config", e);
   }
-  
   return null;
 };
 
-export const createNewRaffle = () => {
+export const subscribeToConfig = (callback: (config: RaffleConfig | null) => void) => {
+  return onSnapshot(doc(db, 'config', DOC_CONFIG), (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data() as RaffleConfig);
+    } else {
+      callback(null);
+    }
+  });
+};
+
+export const createNewRaffle = async () => {
   const date = new Date();
   date.setDate(date.getDate() + 30);
   const newConfig: RaffleConfig = {
@@ -74,60 +77,67 @@ export const createNewRaffle = () => {
     ticketPrice: 2000,
     status: 'active'
   };
-  saveRaffleConfig(newConfig);
+  await saveRaffleConfig(newConfig);
 };
 
-export const saveRaffleConfig = (config: RaffleConfig) => {
-  localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(config));
+export const saveRaffleConfig = async (config: RaffleConfig) => {
+  await setDoc(doc(db, 'config', DOC_CONFIG), config);
+  
   // Adjust numbers if total changes
-  const numbers = getNumbers();
+  const numbers = await getNumbers();
   if (numbers.length < config.totalNumbers) {
     const newNumbers = Array.from({ length: config.totalNumbers - numbers.length }, (_, i) => ({
       id: numbers.length + i + 1,
       status: 'available' as const
     }));
-    saveNumbers([...numbers, ...newNumbers]);
+    await saveNumbers([...numbers, ...newNumbers]);
   } else if (numbers.length > config.totalNumbers) {
-    saveNumbers(numbers.slice(0, config.totalNumbers));
+    await saveNumbers(numbers.slice(0, config.totalNumbers));
   }
 };
 
-export const getNumbers = (): RaffleNumber[] => {
-  const data = localStorage.getItem(STORAGE_KEY_NUMBERS);
-  if (data) return JSON.parse(data);
+export const getNumbers = async (): Promise<RaffleNumber[]> => {
+  const docSnap = await getDoc(doc(db, 'numbers', DOC_NUMBERS));
+  if (docSnap.exists()) {
+    return docSnap.data().items as RaffleNumber[];
+  }
   
   // Default numbers based on config
-  const config = getRaffleConfig();
+  const config = await getRaffleConfig();
   if (!config) return [];
   
   const defaultNumbers = Array.from({ length: config.totalNumbers }, (_, i) => ({
     id: i + 1,
     status: 'available' as const
   }));
-  localStorage.setItem(STORAGE_KEY_NUMBERS, JSON.stringify(defaultNumbers));
+  await setDoc(doc(db, 'numbers', DOC_NUMBERS), { items: defaultNumbers });
   return defaultNumbers;
 };
 
-export const saveNumbers = (numbers: RaffleNumber[]) => {
-  localStorage.setItem(STORAGE_KEY_NUMBERS, JSON.stringify(numbers));
+export const subscribeToNumbers = (callback: (numbers: RaffleNumber[]) => void) => {
+  return onSnapshot(doc(db, 'numbers', DOC_NUMBERS), (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data().items as RaffleNumber[]);
+    } else {
+      callback([]);
+    }
+  });
 };
 
-export const updateNumber = (updatedNumber: RaffleNumber) => {
-  const numbers = getNumbers();
+export const saveNumbers = async (numbers: RaffleNumber[]) => {
+  await setDoc(doc(db, 'numbers', DOC_NUMBERS), { items: numbers });
+};
+
+export const updateNumber = async (updatedNumber: RaffleNumber) => {
+  const numbers = await getNumbers();
   const newNumbers = numbers.map(n => n.id === updatedNumber.id ? updatedNumber : n);
-  saveNumbers(newNumbers);
+  await saveNumbers(newNumbers);
 };
 
-export const getPrizes = (): Prize[] => {
-  const data = localStorage.getItem(STORAGE_KEY_PRIZES);
-  if (data) {
-    try {
-      const parsed = JSON.parse(data);
-      // Validate old schema
-      if (parsed.length > 0 && typeof parsed[0].value === 'number') {
-        return parsed;
-      }
-    } catch(e) {}
+export const getPrizes = async (): Promise<Prize[]> => {
+  const docSnap = await getDoc(doc(db, 'prizes', DOC_PRIZES));
+  if (docSnap.exists()) {
+    return docSnap.data().items as Prize[];
   }
   
   // Default prizes
@@ -165,12 +175,22 @@ export const getPrizes = (): Prize[] => {
       isActive: true
     }
   ];
-  localStorage.setItem(STORAGE_KEY_PRIZES, JSON.stringify(defaultPrizes));
+  await setDoc(doc(db, 'prizes', DOC_PRIZES), { items: defaultPrizes });
   return defaultPrizes;
 };
 
-export const savePrizes = (prizes: Prize[]) => {
-  localStorage.setItem(STORAGE_KEY_PRIZES, JSON.stringify(prizes));
+export const subscribeToPrizes = (callback: (prizes: Prize[]) => void) => {
+  return onSnapshot(doc(db, 'prizes', DOC_PRIZES), (docSnap) => {
+    if (docSnap.exists()) {
+      callback(docSnap.data().items as Prize[]);
+    } else {
+      callback([]);
+    }
+  });
+};
+
+export const savePrizes = async (prizes: Prize[]) => {
+  await setDoc(doc(db, 'prizes', DOC_PRIZES), { items: prizes });
 };
 
 export type RaffleHistoryItem = {
@@ -180,18 +200,17 @@ export type RaffleHistoryItem = {
   prizes: Prize[];
 };
 
-export const getRaffleHistory = (): RaffleHistoryItem[] => {
-  const data = localStorage.getItem(STORAGE_KEY_HISTORY);
-  if (data) return JSON.parse(data);
-  return [];
+export const getRaffleHistory = async (): Promise<RaffleHistoryItem[]> => {
+  const querySnapshot = await getDocs(collection(db, 'history'));
+  return querySnapshot.docs.map(doc => doc.data() as RaffleHistoryItem);
 };
 
-export const finishCurrentRaffle = () => {
-  const config = getRaffleConfig();
+export const finishCurrentRaffle = async () => {
+  const config = await getRaffleConfig();
   if (!config) return;
 
-  const numbers = getNumbers();
-  const prizes = getPrizes();
+  const numbers = await getNumbers();
+  const prizes = await getPrizes();
 
   config.status = 'finished';
   config.finishedAt = new Date().toISOString();
@@ -203,14 +222,13 @@ export const finishCurrentRaffle = () => {
     prizes
   };
 
-  const history = getRaffleHistory();
-  history.push(historyItem);
-  localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(history));
+  // Guardar en el historial
+  await setDoc(doc(db, 'history', historyItem.id), historyItem);
 
-  // Reset current raffle keys
-  localStorage.removeItem(STORAGE_KEY_CONFIG);
-  localStorage.removeItem(STORAGE_KEY_NUMBERS);
-  localStorage.removeItem(STORAGE_KEY_PRIZES);
+  // Limpiar la rifa actual
+  await deleteDoc(doc(db, 'config', DOC_CONFIG));
+  await deleteDoc(doc(db, 'numbers', DOC_NUMBERS));
+  await deleteDoc(doc(db, 'prizes', DOC_PRIZES));
 };
 
 // Admin Auth Mock

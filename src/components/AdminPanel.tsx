@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-  getNumbers, updateNumber,
-  getRaffleConfig, saveRaffleConfig,
-  logoutAdmin,
-  getPrizes, savePrizes,
+  updateNumber, saveRaffleConfig,
+  logoutAdmin, savePrizes,
   finishCurrentRaffle, getRaffleHistory,
-  createNewRaffle,
-  formatCLP
+  createNewRaffle, formatCLP,
+  subscribeToNumbers, subscribeToPrizes, subscribeToConfig
 } from '../services/dataService';
 import type { RaffleNumber, RaffleConfig, Prize, RaffleHistoryItem } from '../services/dataService';
 import { NumberGrid } from './NumberGrid';
@@ -19,20 +17,31 @@ export const AdminPanel: React.FC = () => {
   const [config, setConfig] = useState<RaffleConfig | null>(null);
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [history, setHistory] = useState<RaffleHistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Modal State
   const [editingNumber, setEditingNumber] = useState<RaffleNumber | null>(null);
   const [editForm, setEditForm] = useState({ name: '', lastName: '', phone: '', status: 'available' });
 
   const loadData = () => {
-    setNumbers(getNumbers());
-    setConfig(getRaffleConfig());
-    setPrizes(getPrizes());
-    setHistory(getRaffleHistory());
+    getRaffleHistory().then(setHistory);
   };
 
   useEffect(() => {
     loadData();
+
+    const unsubConfig = subscribeToConfig((c) => {
+      setConfig(c);
+      setLoading(false);
+    });
+    const unsubPrizes = subscribeToPrizes(setPrizes);
+    const unsubNumbers = subscribeToNumbers(setNumbers);
+
+    return () => {
+      unsubConfig();
+      unsubPrizes();
+      unsubNumbers();
+    };
   }, []);
 
   const handleLogout = () => {
@@ -40,35 +49,32 @@ export const AdminPanel: React.FC = () => {
     navigate('/');
   };
 
-  const handleConfigSave = () => {
+  const handleConfigSave = async () => {
     if (!config) return;
-    saveRaffleConfig(config);
-    setNumbers(getNumbers()); // refresh numbers in case total changed
+    await saveRaffleConfig(config);
     alert('Configuración guardada exitosamente');
   };
 
-  const handleTogglePause = () => {
+  const handleTogglePause = async () => {
     if (!config) return;
     const newStatus = config.status === 'paused' ? 'active' : 'paused';
     const newConfig: RaffleConfig = { ...config, status: newStatus };
-    setConfig(newConfig);
-    saveRaffleConfig(newConfig);
+    await saveRaffleConfig(newConfig);
   };
 
-  const handleCreateNewRaffle = () => {
-    createNewRaffle();
-    loadData();
+  const handleCreateNewRaffle = async () => {
+    await createNewRaffle();
   };
 
-  const handleFinishRaffle = () => {
+  const handleFinishRaffle = async () => {
     if (confirm("¿Estás seguro de finalizar la rifa actual? Esto la archivará en el historial y limpiará el panel para configurar una nueva.")) {
-      finishCurrentRaffle();
+      await finishCurrentRaffle();
       loadData();
     }
   };
 
-  const handlePrizesSave = () => {
-    savePrizes(prizes);
+  const handlePrizesSave = async () => {
+    await savePrizes(prizes);
     alert('Premios guardados exitosamente');
   };
 
@@ -86,7 +92,7 @@ export const AdminPanel: React.FC = () => {
     });
   };
 
-  const saveNumberEdit = () => {
+  const saveNumberEdit = async () => {
     if (!editingNumber) return;
 
     const updated: RaffleNumber = {
@@ -99,10 +105,17 @@ export const AdminPanel: React.FC = () => {
       } : undefined
     };
 
-    updateNumber(updated);
-    setNumbers(getNumbers());
+    await updateNumber(updated);
     setEditingNumber(null);
   };
+
+  if (loading) {
+    return (
+      <div className="animate-fade-in" style={{ padding: '2rem', textAlign: 'center' }}>
+        <h2>Cargando Panel de Administración...</h2>
+      </div>
+    );
+  }
 
   return (
     <>

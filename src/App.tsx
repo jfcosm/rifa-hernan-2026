@@ -7,7 +7,7 @@ import { AdminPanel } from './components/AdminPanel';
 import { AdminLogin } from './components/AdminLogin';
 import { ThemeToggle } from './components/ThemeToggle';
 import { 
-  getNumbers, getPrizes, getRaffleConfig, 
+  subscribeToNumbers, subscribeToPrizes, subscribeToConfig, 
   isAdminLoggedIn, formatCLP
 } from './services/dataService';
 import type { RaffleNumber, Prize, RaffleConfig } from './services/dataService';
@@ -17,22 +17,31 @@ const PublicView = () => {
   const [numbers, setNumbers] = useState<RaffleNumber[]>([]);
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [config, setConfig] = useState<RaffleConfig | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check local storage for data, or initialize
-    setNumbers(getNumbers());
-    setPrizes(getPrizes());
-    setConfig(getRaffleConfig());
+    const unsubConfig = subscribeToConfig((c) => {
+      setConfig(c);
+      setLoading(false);
+    });
+    const unsubPrizes = subscribeToPrizes(setPrizes);
+    const unsubNumbers = subscribeToNumbers(setNumbers);
 
-    // Refresh every minute to keep countdown and data updated
-    const interval = setInterval(() => {
-      setNumbers(getNumbers());
-      setPrizes(getPrizes());
-      setConfig(getRaffleConfig());
-    }, 60000);
-
-    return () => clearInterval(interval);
+    return () => {
+      unsubConfig();
+      unsubPrizes();
+      unsubNumbers();
+    };
   }, []);
+
+  if (loading) {
+    return (
+      <div className="animate-fade-in" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+        <h1 style={{ fontSize: '3rem', color: 'var(--text-primary)', marginBottom: '2rem' }}>La Rifa de Hernán</h1>
+        <p style={{ color: 'var(--text-secondary)' }}>Conectando a la base de datos...</p>
+      </div>
+    );
+  }
 
   if (!config) {
     return (
