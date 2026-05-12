@@ -34,7 +34,20 @@ const PublicView = () => {
     return () => clearInterval(interval);
   }, []);
 
-  if (!config) return null;
+  if (!config) {
+    return (
+      <div className="animate-fade-in" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+        <h1 style={{ fontSize: '3rem', color: 'var(--text-primary)', marginBottom: '2rem' }}>La Rifa de Hernán</h1>
+        <div className="glass-card" style={{ display: 'inline-block', padding: '3rem' }}>
+          <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Actualmente no hay ninguna rifa en curso</h2>
+          <p style={{ color: 'var(--text-secondary)' }}>Vuelve más adelante para participar en nuestros próximos sorteos.</p>
+        </div>
+        <div style={{ marginTop: '2rem' }}>
+          <button className="btn btn-outline" onClick={() => navigate('/login')}>Admin</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="animate-fade-in">

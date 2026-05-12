@@ -6,6 +6,7 @@ import {
   logoutAdmin,
   getPrizes, savePrizes,
   finishCurrentRaffle, getRaffleHistory,
+  createNewRaffle,
   formatCLP
 } from '../services/dataService';
 import type { RaffleNumber, RaffleConfig, Prize, RaffleHistoryItem } from '../services/dataService';
@@ -15,14 +16,7 @@ import { ThemeToggle } from './ThemeToggle';
 export const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
   const [numbers, setNumbers] = useState<RaffleNumber[]>([]);
-  const [config, setConfig] = useState<RaffleConfig>({ 
-    totalNumbers: 150, 
-    drawDate: '',
-    showCountdown: true,
-    drawDateMessage: 'Cuando se vendan todos los números',
-    ticketPrice: 2000,
-    status: 'active'
-  });
+  const [config, setConfig] = useState<RaffleConfig | null>(null);
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [history, setHistory] = useState<RaffleHistoryItem[]>([]);
   
@@ -43,16 +37,23 @@ export const AdminPanel: React.FC = () => {
   };
 
   const handleConfigSave = () => {
+    if (!config) return;
     saveRaffleConfig(config);
     setNumbers(getNumbers()); // refresh numbers in case total changed
     alert('Configuración guardada exitosamente');
   };
 
   const handleTogglePause = () => {
+    if (!config) return;
     const newStatus = config.status === 'paused' ? 'active' : 'paused';
     const newConfig: RaffleConfig = { ...config, status: newStatus };
     setConfig(newConfig);
     saveRaffleConfig(newConfig);
+  };
+
+  const handleCreateNewRaffle = () => {
+    createNewRaffle();
+    window.location.reload();
   };
 
   const handleFinishRaffle = () => {
@@ -115,25 +116,32 @@ export const AdminPanel: React.FC = () => {
           <h2 className="mb-4">Estado de la Rifa Actual</h2>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
-              <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: config.status === 'paused' ? 'var(--accent-orange)' : 'var(--success)' }}>
-                {config.status === 'paused' ? 'PAUSADA' : 'ACTIVA'}
+              <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: config ? (config.status === 'paused' ? 'var(--accent-orange)' : 'var(--success)') : 'var(--text-secondary)' }}>
+                {config ? (config.status === 'paused' ? 'PAUSADA' : 'ACTIVA') : 'SIN RIFA ACTIVA'}
               </span>
               <p className="text-secondary" style={{ margin: '0.5rem 0 0 0' }}>
-                La pausa es sólo visible para el administrador y solo es aplicable si la rifa tiene fecha definida.
+                {config ? 'La pausa es sólo visible para el administrador y solo es aplicable si la rifa tiene fecha definida.' : 'Crea una nueva rifa para comenzar.'}
               </p>
             </div>
             <div style={{ display: 'flex', gap: '1rem' }}>
-              {config.showCountdown && (
+              {config && config.showCountdown && (
                 <button className="btn btn-outline" onClick={handleTogglePause}>
                   {config.status === 'paused' ? 'Reanudar Rifa' : 'Pausar Rifa'}
                 </button>
               )}
-              <button className="btn btn-danger" onClick={handleFinishRaffle}>Finalizar Rifa</button>
+              {config && (
+                <button className="btn btn-danger" onClick={handleFinishRaffle}>Finalizar Rifa</button>
+              )}
+              {!config && (
+                <button className="btn className-primary" style={{ backgroundColor: 'var(--accent-blue)', color: 'white', padding: '0.75rem 1.5rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 'bold' }} onClick={handleCreateNewRaffle}>+ Crear Nueva Rifa</button>
+              )}
             </div>
           </div>
         </div>
 
-        <div className="glass-card mb-8">
+        {config && (
+          <>
+            <div className="glass-card mb-8">
           <h2 className="mb-4">Configuración General</h2>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div className="input-group">
@@ -254,11 +262,13 @@ export const AdminPanel: React.FC = () => {
           <button className="btn btn-primary mt-4" onClick={handlePrizesSave}>Guardar Premios</button>
         </div>
 
-        <div className="glass-card">
-          <h2 className="mb-4">Gestión de Números</h2>
-          <p className="mb-4 text-secondary">Haz clic en un número para editar su estado y el comprador.</p>
-          <NumberGrid numbers={numbers} onNumberClick={handleNumberClick} isAdmin={true} />
-        </div>
+            <div className="glass-card">
+              <h2 className="mb-4">Gestión de Números</h2>
+              <p className="mb-4 text-secondary">Haz clic en un número para editar su estado y el comprador.</p>
+              <NumberGrid numbers={numbers} onNumberClick={handleNumberClick} isAdmin={true} />
+            </div>
+          </>
+        )}
 
         <div className="glass-card" style={{ marginTop: '2rem' }}>
           <h2 className="mb-4">Historial de Rifas</h2>

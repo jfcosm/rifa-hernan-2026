@@ -42,7 +42,7 @@ const STORAGE_KEY_PRIZES = 'raffle_prizes';
 const STORAGE_KEY_CONFIG = 'raffle_config';
 const STORAGE_KEY_HISTORY = 'raffle_history';
 
-export const getRaffleConfig = (): RaffleConfig => {
+export const getRaffleConfig = (): RaffleConfig | null => {
   const data = localStorage.getItem(STORAGE_KEY_CONFIG);
   if (data) {
     const parsed = JSON.parse(data);
@@ -60,10 +60,13 @@ export const getRaffleConfig = (): RaffleConfig => {
     return parsed;
   }
   
-  // Default config
+  return null;
+};
+
+export const createNewRaffle = () => {
   const date = new Date();
-  date.setDate(date.getDate() + 30); // 30 days from now
-  return {
+  date.setDate(date.getDate() + 30);
+  const newConfig: RaffleConfig = {
     totalNumbers: 150,
     drawDate: date.toISOString(),
     showCountdown: true,
@@ -71,6 +74,7 @@ export const getRaffleConfig = (): RaffleConfig => {
     ticketPrice: 2000,
     status: 'active'
   };
+  saveRaffleConfig(newConfig);
 };
 
 export const saveRaffleConfig = (config: RaffleConfig) => {
@@ -94,6 +98,8 @@ export const getNumbers = (): RaffleNumber[] => {
   
   // Default numbers based on config
   const config = getRaffleConfig();
+  if (!config) return [];
+  
   const defaultNumbers = Array.from({ length: config.totalNumbers }, (_, i) => ({
     id: i + 1,
     status: 'available' as const
@@ -182,6 +188,8 @@ export const getRaffleHistory = (): RaffleHistoryItem[] => {
 
 export const finishCurrentRaffle = () => {
   const config = getRaffleConfig();
+  if (!config) return;
+
   const numbers = getNumbers();
   const prizes = getPrizes();
 
