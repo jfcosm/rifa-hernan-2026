@@ -97,7 +97,23 @@ const PublicView = () => {
         <PrizesSection prizes={prizes} />
       </div>
 
-      <div style={{ marginTop: '4rem' }}>
+      {/* Stats Panel */}
+      <div style={{ marginTop: '3rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', maxWidth: '500px', margin: '3rem auto 0' }}>
+        <div className="glass-card" style={{ textAlign: 'center', padding: '1.5rem' }}>
+          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Disponibles</p>
+          <p style={{ margin: '0.5rem 0 0', fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--success)' }}>
+            {numbers.filter(n => n.status === 'available').length}
+          </p>
+        </div>
+        <div className="glass-card" style={{ textAlign: 'center', padding: '1.5rem' }}>
+          <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Vendidos</p>
+          <p style={{ margin: '0.5rem 0 0', fontSize: '2.5rem', fontWeight: 'bold', color: 'var(--accent-orange)' }}>
+            {numbers.filter(n => n.status === 'sold').length}
+          </p>
+        </div>
+      </div>
+
+      <div style={{ marginTop: '3rem' }}>
         <NumberGrid numbers={numbers} isAdmin={false} />
       </div>
       
