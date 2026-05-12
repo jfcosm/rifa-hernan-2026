@@ -50,7 +50,7 @@ export const AdminPanel: React.FC = () => {
 
   const handleTogglePause = () => {
     const newStatus = config.status === 'paused' ? 'active' : 'paused';
-    const newConfig = { ...config, status: newStatus };
+    const newConfig: RaffleConfig = { ...config, status: newStatus };
     setConfig(newConfig);
     saveRaffleConfig(newConfig);
   };
