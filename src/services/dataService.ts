@@ -7,6 +7,7 @@ export type Buyer = {
 export type RaffleNumber = {
   id: number;
   status: 'available' | 'sold';
+  paymentStatus?: 'paid' | 'pending';
   buyer?: Buyer;
 };
 

@@ -22,12 +22,12 @@ export const AdminPanel: React.FC = () => {
   
   // Modal State
   const [editingNumber, setEditingNumber] = useState<RaffleNumber | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', lastName: '', phone: '', status: 'available' });
+  const [editForm, setEditForm] = useState({ name: '', lastName: '', phone: '', status: 'available', paymentStatus: 'pending' });
 
   // Bulk mode state
   const [bulkMode, setBulkMode] = useState(false);
   const [bulkSelectedIds, setBulkSelectedIds] = useState<number[]>([]);
-  const [bulkForm, setBulkForm] = useState({ name: '', lastName: '', phone: '', status: 'sold' });
+  const [bulkForm, setBulkForm] = useState({ name: '', lastName: '', phone: '', status: 'sold', paymentStatus: 'pending' });
   const [bulkSaving, setBulkSaving] = useState(false);
 
   const loadData = () => {
@@ -95,7 +95,8 @@ export const AdminPanel: React.FC = () => {
       name: num.buyer?.name || '',
       lastName: num.buyer?.lastName || '',
       phone: num.buyer?.phone || '',
-      status: num.status
+      status: num.status,
+      paymentStatus: num.paymentStatus || 'pending'
     });
   };
 
@@ -110,7 +111,12 @@ export const AdminPanel: React.FC = () => {
     setBulkSaving(true);
     const updatedNumbers: RaffleNumber[] = bulkSelectedIds.map(id => {
       if (bulkForm.status === 'sold') {
-        return { id, status: 'sold' as const, buyer: { name: bulkForm.name, lastName: bulkForm.lastName, phone: bulkForm.phone } };
+        return {
+          id,
+          status: 'sold' as const,
+          paymentStatus: bulkForm.paymentStatus as 'paid' | 'pending',
+          buyer: { name: bulkForm.name, lastName: bulkForm.lastName, phone: bulkForm.phone }
+        };
       }
       return { id, status: 'available' as const };
     });
@@ -127,6 +133,7 @@ export const AdminPanel: React.FC = () => {
       ? {
           id: editingNumber.id,
           status: 'sold',
+          paymentStatus: editForm.paymentStatus as 'paid' | 'pending',
           buyer: {
             name: editForm.name,
             lastName: editForm.lastName,
@@ -136,7 +143,6 @@ export const AdminPanel: React.FC = () => {
       : {
           id: editingNumber.id,
           status: 'available'
-          // buyer field intentionally omitted — Firestore does not accept undefined values
         };
 
     await updateNumber(updated);
@@ -400,6 +406,13 @@ export const AdminPanel: React.FC = () => {
                     </div>
                     {bulkForm.status === 'sold' && (
                       <>
+                        <div style={{ gridColumn: '1 / -1' }}>
+                          <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Estado de Pago</label>
+                          <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                            <button type="button" onClick={() => setBulkForm({...bulkForm, paymentStatus: 'paid'})} style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: '2px solid', borderColor: bulkForm.paymentStatus === 'paid' ? '#22c55e' : 'var(--card-border)', background: bulkForm.paymentStatus === 'paid' ? 'rgba(34,197,94,0.15)' : 'transparent', color: bulkForm.paymentStatus === 'paid' ? '#22c55e' : 'var(--text-secondary)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem' }}>✓ Pagado</button>
+                            <button type="button" onClick={() => setBulkForm({...bulkForm, paymentStatus: 'pending'})} style={{ flex: 1, padding: '0.5rem', borderRadius: '8px', border: '2px solid', borderColor: bulkForm.paymentStatus === 'pending' ? '#fbbf24' : 'var(--card-border)', background: bulkForm.paymentStatus === 'pending' ? 'rgba(251,191,36,0.15)' : 'transparent', color: bulkForm.paymentStatus === 'pending' ? '#fbbf24' : 'var(--text-secondary)', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem' }}>⏳ Pendiente</button>
+                          </div>
+                        </div>
                         <div>
                           <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Nombre</label>
                           <input type="text" className="input" placeholder="Nombre" value={bulkForm.name} onChange={e => setBulkForm({...bulkForm, name: e.target.value})} style={{ marginTop: '0.25rem' }} />
@@ -477,6 +490,49 @@ export const AdminPanel: React.FC = () => {
 
             {editForm.status === 'sold' && (
               <>
+                {/* Payment status toggle */}
+                <div className="input-group">
+                  <label>Estado de Pago</label>
+                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.25rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm({...editForm, paymentStatus: 'paid'})}
+                      style={{
+                        flex: 1,
+                        padding: '0.6rem',
+                        borderRadius: '8px',
+                        border: '2px solid',
+                        borderColor: editForm.paymentStatus === 'paid' ? '#22c55e' : 'var(--card-border)',
+                        background: editForm.paymentStatus === 'paid' ? 'rgba(34,197,94,0.15)' : 'transparent',
+                        color: editForm.paymentStatus === 'paid' ? '#22c55e' : 'var(--text-secondary)',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      ✓ Pagado
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm({...editForm, paymentStatus: 'pending'})}
+                      style={{
+                        flex: 1,
+                        padding: '0.6rem',
+                        borderRadius: '8px',
+                        border: '2px solid',
+                        borderColor: editForm.paymentStatus === 'pending' ? '#fbbf24' : 'var(--card-border)',
+                        background: editForm.paymentStatus === 'pending' ? 'rgba(251,191,36,0.15)' : 'transparent',
+                        color: editForm.paymentStatus === 'pending' ? '#fbbf24' : 'var(--text-secondary)',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      ⏳ Pendiente
+                    </button>
+                  </div>
+                </div>
+
                 <div className="input-group">
                   <label>Nombre</label>
                   <input 

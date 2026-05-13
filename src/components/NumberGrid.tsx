@@ -24,6 +24,25 @@ export const NumberGrid: React.FC<NumberGridProps> = ({
   return (
     <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
       <h2 className="text-center mb-8 text-gradient">Números de la Rifa</h2>
+
+      {/* Legend for admin */}
+      {isAdmin && (
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem', fontSize: '0.8rem' }}>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(34,197,94,0.3)', border: '1px solid var(--available)', display: 'inline-block' }} />
+            Disponible
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(239,68,68,0.3)', border: '1px solid var(--sold)', display: 'inline-block' }} />
+            Vendido · Pagado
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ width: 12, height: 12, borderRadius: 3, background: 'rgba(251,191,36,0.3)', border: '1px solid #fbbf24', display: 'inline-block' }} />
+            Vendido · Pendiente
+          </span>
+        </div>
+      )}
+
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
@@ -33,12 +52,23 @@ export const NumberGrid: React.FC<NumberGridProps> = ({
           const isSelected = selectedIds.includes(num.id);
           const isBulkSelected = bulkSelectedIds.includes(num.id);
           const isClickable = isAdmin || num.status === 'available';
+          const isPending = num.status === 'sold' && num.paymentStatus === 'pending';
 
-          let bg = num.status === 'available' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)';
-          let border = `1px solid ${num.status === 'available' ? 'var(--available)' : 'var(--sold)'}`;
-          let boxShadow = num.status === 'available'
-            ? '0 4px 10px rgba(34, 197, 94, 0.1)'
-            : '0 4px 10px rgba(239, 68, 68, 0.1)';
+          let bg = 'rgba(34, 197, 94, 0.1)';
+          let border = '1px solid var(--available)';
+          let boxShadow = '0 4px 10px rgba(34, 197, 94, 0.1)';
+
+          if (num.status === 'sold') {
+            if (isPending) {
+              bg = 'rgba(251, 191, 36, 0.12)';
+              border = '1px solid #fbbf24';
+              boxShadow = '0 4px 10px rgba(251,191,36,0.15)';
+            } else {
+              bg = 'rgba(239, 68, 68, 0.1)';
+              border = '1px solid var(--sold)';
+              boxShadow = '0 4px 10px rgba(239, 68, 68, 0.1)';
+            }
+          }
 
           if (isSelected) {
             bg = 'rgba(250, 150, 30, 0.25)';
@@ -109,10 +139,34 @@ export const NumberGrid: React.FC<NumberGridProps> = ({
                 </div>
               )}
 
+              {/* Payment status badge (admin only, sold numbers) */}
+              {isAdmin && num.status === 'sold' && !bulkMode && (
+                <div style={{
+                  position: 'absolute',
+                  top: '6px',
+                  left: '6px',
+                  borderRadius: '4px',
+                  padding: '1px 5px',
+                  fontSize: '0.6rem',
+                  fontWeight: 'bold',
+                  letterSpacing: '0.04em',
+                  background: isPending ? '#fbbf24' : '#22c55e',
+                  color: isPending ? '#1a1a1a' : '#fff',
+                }}>
+                  {isPending ? 'PEND' : 'PAG'}
+                </div>
+              )}
+
               <div style={{
                 fontSize: '2rem',
                 fontWeight: 'bold',
-                color: isBulkSelected ? '#818cf8' : isSelected ? 'var(--accent-orange)' : 'var(--number-text)'
+                color: isBulkSelected
+                  ? '#818cf8'
+                  : isSelected
+                    ? 'var(--accent-orange)'
+                    : isPending
+                      ? '#fbbf24'
+                      : 'var(--number-text)'
               }}>
                 {num.id.toString().padStart(3, '0')}
               </div>
@@ -125,7 +179,9 @@ export const NumberGrid: React.FC<NumberGridProps> = ({
                   ? '#818cf8'
                   : isSelected
                     ? 'var(--accent-orange)'
-                    : num.status === 'available' ? 'var(--available)' : 'var(--text-primary)'
+                    : num.status === 'available'
+                      ? 'var(--available)'
+                      : 'var(--text-primary)'
               }}>
                 {num.status === 'available' ? (
                   isSelected ? '✓ Seleccionado' : 'Disponible'
