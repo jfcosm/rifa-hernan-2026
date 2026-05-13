@@ -280,8 +280,8 @@ export const AdminPanel: React.FC = () => {
           <h2 className="mb-4">Gestión de Premios</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {prizes.map((prize) => (
-              <div key={prize.id} style={{ border: '1px solid var(--card-border)', padding: '1.5rem', borderRadius: '12px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <div key={prize.id} style={{ border: '1px solid var(--card-border)', padding: '1.25rem', borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
                   <h3 style={{ margin: 0 }}>{prize.title}</h3>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
                     <input 
@@ -294,7 +294,7 @@ export const AdminPanel: React.FC = () => {
                   </label>
                 </div>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="prize-fields-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem' }}>
                   <div className="input-group">
                     <label>Título del Premio</label>
                     <input 

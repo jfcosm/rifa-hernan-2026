@@ -74,6 +74,7 @@ body {
   min-height: 100vh;
   background: var(--bg-gradient);
   background-attachment: fixed;
+  overflow-x: hidden;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -436,6 +437,16 @@ a:hover {
   /* Dashboard metric cards — 2 cols on mobile */
   .dashboard-metrics {
     grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Prize fields grid — single column on mobile */
+  .prize-fields-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Prize field spanning full width even in single-col */
+  .prize-fields-grid [style*="gridColumn"] {
+    grid-column: 1 !important;
   }
 }
 
