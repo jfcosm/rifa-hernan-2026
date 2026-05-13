@@ -11,6 +11,7 @@ import {
 import type { RaffleNumber, RaffleConfig, Prize, RaffleHistoryItem } from '../services/dataService';
 import { NumberGrid } from './NumberGrid';
 import { ThemeToggle } from './ThemeToggle';
+import { RaffleDashboard } from './RaffleDashboard';
 
 export const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
@@ -208,6 +209,10 @@ export const AdminPanel: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {config && (
+          <RaffleDashboard numbers={numbers} config={config} />
+        )}
 
         {config && (
           <>

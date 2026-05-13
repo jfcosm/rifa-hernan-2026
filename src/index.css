@@ -427,6 +427,16 @@ a:hover {
     gap: 0.6rem !important;
     font-size: 0.75rem !important;
   }
+
+  /* Dashboard chart/progress grid — stack on mobile */
+  .dashboard-chart-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dashboard metric cards — 2 cols on mobile */
+  .dashboard-metrics {
+    grid-template-columns: 1fr 1fr !important;
+  }
 }
 
 @media (max-width: 480px) {
