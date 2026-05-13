@@ -12,6 +12,7 @@ import type { RaffleNumber, RaffleConfig, Prize, RaffleHistoryItem } from '../se
 import { NumberGrid } from './NumberGrid';
 import { ThemeToggle } from './ThemeToggle';
 import { RaffleDashboard } from './RaffleDashboard';
+import { BuyersList } from './BuyersList';
 
 export const AdminPanel: React.FC = () => {
   const navigate = useNavigate();
@@ -444,6 +445,12 @@ export const AdminPanel: React.FC = () => {
               )}
             </div>
           </>
+        )}
+
+        {config && numbers.some(n => n.status === 'sold') && (
+          <div style={{ marginTop: '2rem' }}>
+            <BuyersList numbers={numbers} config={config} />
+          </div>
         )}
 
         <div className="glass-card" style={{ marginTop: '2rem' }}>
