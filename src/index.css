@@ -63,17 +63,26 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  /* Safari iOS: overflow-x hidden must be on html, not just body */
+  overflow-x: hidden;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /* Safari: prevent flex/grid children from overflowing their container */
+  min-width: 0;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: -webkit-fill-available; /* Safari iOS viewport fix */
+  /* background-attachment: fixed breaks on Safari iOS — use scroll instead */
   background: var(--bg-gradient);
-  background-attachment: fixed;
+  background-attachment: scroll;
   overflow-x: hidden;
 }
 
@@ -92,11 +101,13 @@ a:hover {
 
 .app-container {
   max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 2rem;
   display: flex;
   flex-direction: column;
   gap: 3rem;
+  overflow-x: hidden;
 }
 
 /* Glassmorphism Card */
@@ -109,6 +120,10 @@ a:hover {
   padding: 2rem;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  /* Safari: prevent content from bleeding outside rounded corners */
+  overflow: hidden;
+  /* Ensure card doesn't exceed viewport */
+  max-width: 100%;
 }
 
 /* Typography utilities */
@@ -197,6 +212,11 @@ a:hover {
   font-family: inherit;
   font-size: 1rem;
   transition: border-color 0.2s ease;
+  /* Safari: prevent inputs from overflowing their container */
+  width: 100%;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
 .input:focus {
