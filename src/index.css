@@ -264,10 +264,180 @@ a:hover {
   animation: fadeIn 0.5s ease-out forwards;
 }
 
-/* Responsive */
+/* ============================
+   RESPONSIVE — MOBILE FIRST
+   ============================ */
+
 @media (max-width: 768px) {
   .app-container {
     padding: 1rem;
-    gap: 2rem;
+    gap: 1.5rem;
+  }
+
+  /* Cards */
+  .glass-card {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  /* Headings */
+  h1 { font-size: 1.75rem !important; }
+  h2 { font-size: 1.3rem !important; }
+  h3 { font-size: 1.1rem !important; }
+
+  /* Buttons — prevent overflow */
+  .btn {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem;
+    white-space: normal;
+    text-align: center;
+  }
+
+  /* Modal — full-screen bottom sheet style on mobile */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-content {
+    border-radius: 20px 20px 0 0;
+    padding: 1.5rem 1.25rem 2rem;
+    max-height: 92vh;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .modal-close {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
+  /* Admin panel header — stack on mobile */
+  .admin-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  .admin-header-actions {
+    flex-wrap: wrap !important;
+    width: 100%;
+  }
+
+  .admin-header-actions .btn {
+    flex: 1;
+    min-width: 120px;
+  }
+
+  /* Status card — stack content */
+  .status-card-inner {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  .status-card-actions {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+  }
+
+  .status-card-actions .btn,
+  .status-card-actions button {
+    flex: 1 1 140px;
+  }
+
+  /* Config grid — single column */
+  .config-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Number grid — smaller cards */
+  .number-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)) !important;
+    gap: 0.6rem !important;
+  }
+
+  .number-card {
+    min-height: 75px !important;
+    padding: 0.6rem !important;
+  }
+
+  .number-card-id {
+    font-size: 1.4rem !important;
+  }
+
+  .number-card-label {
+    font-size: 0.7rem !important;
+  }
+
+  /* Bulk floating panel — full width at bottom */
+  .bulk-panel {
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    transform: none !important;
+    border-radius: 20px 20px 0 0 !important;
+    min-width: unset !important;
+    max-width: 100% !important;
+    padding: 1.25rem !important;
+    overflow-y: auto;
+    max-height: 70vh;
+  }
+
+  .bulk-panel-tags {
+    flex-wrap: wrap !important;
+    max-height: 60px;
+    overflow-y: auto;
+  }
+
+  /* Stats panel — already grid, just tighten */
+  .stats-panel {
+    gap: 0.75rem !important;
+  }
+
+  /* CTA banner — tighten padding */
+  .cta-banner {
+    padding: 1.5rem 1.25rem !important;
+  }
+
+  /* Prize cards grid */
+  .prizes-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* History items */
+  .history-item-inner {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  .history-item-stats {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  /* WhatsApp modal: ensure inputs aren't too small */
+  .modal-content input,
+  .modal-content select,
+  .modal-content textarea {
+    font-size: 16px !important; /* prevents iOS zoom on focus */
+  }
+
+  /* Legend row — wrap */
+  .number-legend {
+    gap: 0.6rem !important;
+    font-size: 0.75rem !important;
   }
 }
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.4rem !important; }
+
+  .number-grid {
+    grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)) !important;
+  }
+
+  .number-card-id {
+    font-size: 1.2rem !important;
+  }
+}
+

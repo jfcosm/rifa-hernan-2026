@@ -160,39 +160,37 @@ export const AdminPanel: React.FC = () => {
   return (
     <>
       <div className="animate-fade-in">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <div className="admin-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
           <h1 className="text-gradient">Panel de Administración</h1>
-          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-          <ThemeToggle />
-          <button className="btn btn-outline" onClick={() => navigate('/')}>Ver Rifa Pública</button>
-          <button className="btn btn-danger" onClick={handleLogout}>Cerrar Sesión</button>
-        </div>
+          <div className="admin-header-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <ThemeToggle />
+            <button className="btn btn-outline" onClick={() => navigate('/')}>Ver Rifa Pública</button>
+            <button className="btn btn-danger" onClick={handleLogout}>Cerrar Sesión</button>
+          </div>
         </div>
 
         <div className="glass-card mb-8" style={{ border: '2px solid var(--accent-orange)' }}>
           <h2 className="mb-4">Estado de la Rifa Actual</h2>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="status-card-inner" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div>
               <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: config ? (config.status === 'paused' ? 'var(--accent-orange)' : 'var(--success)') : 'var(--text-secondary)' }}>
                 {config ? (config.status === 'paused' ? 'PAUSADA' : 'ACTIVA') : 'SIN RIFA ACTIVA'}
               </span>
-              <p className="text-secondary" style={{ margin: '0.5rem 0 0 0' }}>
-                {config ? 'La pausa es sólo visible para el administrador y solo es aplicable si la rifa tiene fecha definida.' : 'Crea una nueva rifa para comenzar.'}
+              <p className="text-secondary" style={{ margin: '0.5rem 0 0 0', fontSize: '0.85rem' }}>
+                {config ? 'La pausa es sólo visible para el admin y aplicable si la rifa tiene fecha definida.' : 'Crea una nueva rifa para comenzar.'}
               </p>
             </div>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <button 
-                className="btn" 
-                style={{ 
-                  backgroundColor: config ? 'var(--card-border)' : 'var(--accent-blue)', 
-                  color: config ? 'var(--text-secondary)' : 'white', 
-                  padding: '0.75rem 1.5rem', 
-                  borderRadius: '8px', 
-                  border: 'none', 
-                  cursor: config ? 'not-allowed' : 'pointer', 
+            <div className="status-card-actions" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <button
+                className="btn"
+                style={{
+                  backgroundColor: config ? 'var(--card-border)' : 'var(--accent-blue)',
+                  color: config ? 'var(--text-secondary)' : 'white',
+                  border: 'none',
+                  cursor: config ? 'not-allowed' : 'pointer',
                   fontWeight: 'bold',
                   opacity: config ? 0.6 : 1
-                }} 
+                }}
                 onClick={handleCreateNewRaffle}
                 disabled={!!config}
               >
@@ -215,7 +213,7 @@ export const AdminPanel: React.FC = () => {
           <>
             <div className="glass-card mb-8">
           <h2 className="mb-4">Configuración General</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="config-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div className="input-group">
               <label>Total de Números</label>
               <input 
@@ -371,7 +369,7 @@ export const AdminPanel: React.FC = () => {
 
               {/* Bulk action floating panel */}
               {bulkMode && bulkSelectedIds.length > 0 && (
-                <div style={{
+                <div className="bulk-panel" style={{
                   position: 'fixed',
                   bottom: '2rem',
                   left: '50%',
@@ -385,9 +383,9 @@ export const AdminPanel: React.FC = () => {
                   minWidth: '360px',
                   maxWidth: '90vw'
                 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                     <h3 style={{ margin: 0, color: '#818cf8' }}>Asignar {bulkSelectedIds.length} número(s)</h3>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <div className="bulk-panel-tags" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                       {[...bulkSelectedIds].sort((a,b)=>a-b).map(id => (
                         <span key={id} style={{ background: '#6366f1', color: 'white', borderRadius: '6px', padding: '0.2rem 0.5rem', fontSize: '0.8rem', fontWeight: 'bold' }}>
                           {id.toString().padStart(3,'0')}
