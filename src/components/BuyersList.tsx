@@ -23,14 +23,15 @@ function groupBuyers(numbers: RaffleNumber[], price: number): { pending: BuyerSu
     .filter(n => n.status === 'sold' && n.buyer)
     .forEach(n => {
       const b = n.buyer!;
-      const key = `${b.name}||${b.lastName}||${b.phone}||${n.paymentStatus ?? 'pending'}`;
+      const isPaid = n.paymentStatus === 'paid';
+      const key = `${b.name}||${b.lastName}||${b.phone}||${isPaid ? 'paid' : 'pending'}`;
       if (!map.has(key)) {
         map.set(key, {
           name: b.name,
           lastName: b.lastName,
           phone: b.phone,
           numbers: [],
-          paymentStatus: (n.paymentStatus ?? 'pending') as 'paid' | 'pending',
+          paymentStatus: isPaid ? 'paid' : 'pending',
           total: 0,
         });
       }

@@ -52,7 +52,7 @@ export const NumberGrid: React.FC<NumberGridProps> = ({
           const isSelected = selectedIds.includes(num.id);
           const isBulkSelected = bulkSelectedIds.includes(num.id);
           const isClickable = isAdmin || num.status === 'available';
-          const isPending = num.status === 'sold' && num.paymentStatus === 'pending';
+          const isPending = num.status === 'sold' && num.paymentStatus !== 'paid';
 
           let bg = 'rgba(34, 197, 94, 0.1)';
           let border = '1px solid var(--available)';

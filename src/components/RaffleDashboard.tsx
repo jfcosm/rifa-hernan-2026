@@ -149,8 +149,8 @@ export const RaffleDashboard: React.FC<RaffleDashboardProps> = ({ numbers, confi
   const total = numbers.length;
   const sold = numbers.filter(n => n.status === 'sold').length;
   const available = total - sold;
-  const paid = numbers.filter(n => n.status === 'sold' && n.paymentStatus !== 'pending').length;
-  const pending = numbers.filter(n => n.status === 'sold' && n.paymentStatus === 'pending').length;
+  const paid = numbers.filter(n => n.status === 'sold' && n.paymentStatus === 'paid').length;
+  const pending = numbers.filter(n => n.status === 'sold' && n.paymentStatus !== 'paid').length;
 
   const price = config.ticketPrice || 0;
   const revenueCollected = paid * price;
