@@ -18,6 +18,12 @@ export type Prize = {
   value: number;
   image: string;
   isActive: boolean;
+  winner?: {
+    number: number;
+    name: string;
+    lastName: string;
+    phone: string;
+  };
 };
 
 export const formatCLP = (value: number) => {
@@ -26,6 +32,15 @@ export const formatCLP = (value: number) => {
     currency: 'CLP',
     maximumFractionDigits: 0
   }).format(value);
+};
+
+export const obfuscatePhone = (phone: string) => {
+  if (!phone) return '';
+  const clean = phone.trim();
+  if (clean.length <= 7) {
+    return clean.slice(0, 4) + '***';
+  }
+  return clean.slice(0, 7) + '*'.repeat(clean.length - 7);
 };
 
 export type RaffleConfig = {

@@ -87,6 +87,18 @@ export const AdminPanel: React.FC = () => {
     alert('Premios guardados exitosamente');
   };
 
+  const handleClearWinners = async () => {
+    if (confirm("¿Estás seguro de que deseas limpiar TODOS los ganadores asignados a los premios? Esto borrará permanentemente los ganadores de la rifa actual en Firestore.")) {
+      const clearedPrizes = prizes.map(p => {
+        const { winner, ...rest } = p;
+        return rest;
+      });
+      await savePrizes(clearedPrizes);
+      setPrizes(clearedPrizes);
+      alert('Se han limpiado los ganadores de todos los premios.');
+    }
+  };
+
   const handlePrizeChange = (id: string, field: keyof Prize, value: string | number | boolean) => {
     setPrizes(prizes.map(p => p.id === id ? { ...p, [field]: value } : p));
   };
@@ -166,6 +178,13 @@ export const AdminPanel: React.FC = () => {
           <h1 className="text-gradient">Panel de Administración</h1>
           <div className="admin-header-actions" style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <ThemeToggle />
+            <button 
+              className="btn btn-primary" 
+              style={{ background: 'linear-gradient(135deg, var(--accent-orange), #ef4444)' }}
+              onClick={() => navigate('/admin/draw')}
+            >
+              🎬 Sorteo en Vivo
+            </button>
             <button className="btn btn-outline" onClick={() => navigate('/')}>Ver Rifa Pública</button>
             <button className="btn btn-danger" onClick={handleLogout}>Cerrar Sesión</button>
           </div>
@@ -336,6 +355,11 @@ export const AdminPanel: React.FC = () => {
             ))}
           </div>
           <button className="btn btn-primary mt-4" onClick={handlePrizesSave}>Guardar Premios</button>
+          {prizes.some(p => p.winner) && (
+            <button className="btn btn-danger mt-4" style={{ marginLeft: '1rem' }} onClick={handleClearWinners}>
+              🗑️ Limpiar Ganadores
+            </button>
+          )}
         </div>
 
             <div className="glass-card">

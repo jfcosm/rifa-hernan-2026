@@ -5,6 +5,7 @@ import { PrizesSection } from './components/PrizesSection';
 import { NumberGrid } from './components/NumberGrid';
 import { AdminPanel } from './components/AdminPanel';
 import { AdminLogin } from './components/AdminLogin';
+import { LiveDraw } from './components/LiveDraw';
 import { ThemeToggle } from './components/ThemeToggle';
 import { 
   subscribeToNumbers, subscribeToPrizes, subscribeToConfig, 
@@ -303,22 +304,30 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 function App() {
   return (
-    <div className="app-container">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<PublicView />} />
-          <Route path="/login" element={<AdminLogin />} />
-          <Route 
-            path="/admin" 
-            element={
-              <ProtectedRoute>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<div className="app-container"><PublicView /></div>} />
+        <Route path="/login" element={<div className="app-container"><AdminLogin /></div>} />
+        <Route 
+          path="/admin" 
+          element={
+            <ProtectedRoute>
+              <div className="app-container">
                 <AdminPanel />
-              </ProtectedRoute>
-            } 
-          />
-        </Routes>
-      </BrowserRouter>
-    </div>
+              </div>
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/admin/draw" 
+          element={
+            <ProtectedRoute>
+              <LiveDraw />
+            </ProtectedRoute>
+          } 
+        />
+      </Routes>
+    </BrowserRouter>
   );
 }
 
