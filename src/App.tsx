@@ -27,7 +27,7 @@ const PublicView = () => {
 
   const HERNAN_PHONE = '56944335942';
 
-  const isFinished = !config || config.status === 'finished';
+  const isFinished = !config || config.status === 'finished' || prizes.some(p => p.winner);
   const activeConfig = config || {
     totalNumbers: 150,
     ticketPrice: 2000,
